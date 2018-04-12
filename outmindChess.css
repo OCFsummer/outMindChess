@@ -1,6 +1,8 @@
-body{
-	width: 1000px;
-	height: 1000px;
+#wrap{
+    width: 1200px;
+    height: 800px;
+    position: relative;
+    background-color: #f9f7f7;
 }
 #Checkerboard{
     position: absolute;
@@ -39,14 +41,15 @@ body{
 }
 .heroicon{
 	width: 40px;
+    cursor: pointer;
 }
 #controlboard{
-	width: 250px;
+    width: 250px;
     height: 500px;
     position: absolute;
     background-color: #ccc;
     right: 50px;
-    top: 24%;
+    top: 19%;
 }
 
 .controllboard_button{
@@ -62,6 +65,7 @@ body{
 
 .controllboard_button:active{
 	background-color: #123;
+    cursor: pointer;
 }
 
 .attacktips{

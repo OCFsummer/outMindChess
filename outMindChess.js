@@ -59,7 +59,7 @@ Chess.prototype = {
 	},
 	bindChessOutEvent:function(node){
 		var _this = this;
-		$('body').on('drop.'+_this._chessName, function(e){
+		$('#wrap').on('drop.'+_this._chessName, function(e){
 			e.preventDefault();
 			_this.showBackgroundColor($('#'+data), 3);
 			var data=e.originalEvent.dataTransfer.getData(_this._chessName);
@@ -84,6 +84,7 @@ Chess.prototype = {
 	bindDragstart:function(){
 		var _this = this;
 		this._chess.on('dragstart',function(e){
+			popHeroInfo(false);
 			e.originalEvent.dataTransfer.setData('chessName',e.target.id);
 			_this.showBackgroundColor($(e.target), 1);
 		})
@@ -268,7 +269,7 @@ function popHeroInfo(creat, obj, e){
 			var p = $('<p>'+key+':'+obj[key]+'</p>');
 			pop.append(p);
 		}
-		$('body').append(pop);
+		$('#wrap').append(pop);
 		pop.css({
 			'top':(e.clientY+20)+'px',
 			'left':(e.clientX+10)+'px',
@@ -292,7 +293,7 @@ function controllboard(action, type, hero){
 				board.append(attackButton);
 				board.append(attackTips);
 				board.append(finish);
-				$('body').append(board);
+				$('#wrap').append(board);
 				/*业务逻辑*/
 				attacker = hero;
 				attackButton.on('click', function(){

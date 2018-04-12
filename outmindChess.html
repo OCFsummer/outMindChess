@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>脑洞大开棋</title>
+	<script src="./lib/jquery.js"></script>
+	<link rel="stylesheet" href="outMindChess.css">
+</head>
+<body>
+	<div id="Checkerboard">
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+	</div>
+	<div id="Movecolorboard">
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+		<div class="colorgrid"></div>
+	</div>
+</body>
+<script src="./outMindChess.js"></script>
+<script type="text/javascript">
+//ondragover 事件：拖拽元素在目标元素上移动的时候触发的事件，此事件作用在目标元素上.防止目标元素默认事件
+// function allowDrop(ev){
+// 	ev.preventDefault();
+// }
+
+$('.grid').on('dragover', function(e){
+	e.preventDefault();
+})
+
+/*$('body').on('drop', function(e){
+			e.preventDefault();
+			console.log(e.target);
+			//this.showBackgroundColor($('#'+data), 3);
+			var data=e.originalEvent.dataTransfer.getData('chessName');
+		});*/
+$('body').on('dragover', function(e){
+	e.preventDefault();
+})
+//ondragstart 事件：当拖拽元素开始被拖拽的时候触发的事件，此事件作用在被拖曳元素上
+// function drag(ev){
+// 	ev.dataTransfer.setData("Text",ev.target.id);
+// }
+// var init = 0;
+// $('#basicchess').on('dragstart',function(e){
+// 	e.originalEvent.dataTransfer.setData("Text",e.target.id);
+// 	if(init != 0){
+// 		showBackgroundColor($(e.target), true);
+// 	}
+// 	init = 1;
+// })
+
+//ondrop 事件：被拖拽的元素在目标元素上同时鼠标放开触发的事件，此事件作用在目标元素上
+// function drop(ev){
+// 	ev.preventDefault();
+// 	var data=ev.dataTransfer.getData("Text");
+// 	ev.target.appendChild(document.getElementById(data));
+// }
+
+/*$('.grid').on('drop', function(e){
+	e.preventDefault();
+	var data=e.originalEvent.dataTransfer.getData("Text");
+	e.target.appendChild(document.getElementById(data));
+	showBackgroundColor($('#'+data), false);
+});*/
+
+</script>
+</html>

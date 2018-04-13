@@ -11,3 +11,4 @@
 2.添加getDamageRangeNodes接口，攻击距离判定 <br>
 3.添加攻击范围提示 <br>
 4.修改getMoveRangeNodes接口，外部调用 <br>
+5.优化hero构造函数属性 <br>

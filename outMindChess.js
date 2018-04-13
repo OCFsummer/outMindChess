@@ -6,14 +6,17 @@ function Chess(obj){
 	this._chessName = obj.chessName;
 	this._chessImg = obj.chessImg;
 	this._initMoveNodes = [];
-	this._colorNodes = [];
+	this._moveColorNodes = [];
+	this._damageColorNodes = [];
 	this._skill = obj.skill;
 	this._startLocation = obj.startLocation;
 	this._checkerBoard = obj.checkerBoard;
 	this._moveColorBoard = obj.moveColorBoard;
 	this._grid = obj.grid;
-	this._moveRange = obj.moveRange;
+
 	this._hero = obj.hero;
+	this._moveRangeNodes = [];
+	this._damageRangeNodes = [];
 	this.init();
 }
 
@@ -34,6 +37,7 @@ Chess.prototype = {
 	},
 	heroInit:function(){
 		var _this = this;
+		this.getMoveRangeNodes();
 	},
 	/*----基本移动逻辑模块----*/
 	putChess:function(Coordinate){
@@ -45,7 +49,7 @@ Chess.prototype = {
 		/*-初次放置棋子定位-*/
 		var _this = this;
 		var parent = this._chess.parent();
-		var neighbors = help.getRound(_this._moveRange, parent);
+		var neighbors = help.getRound(_this._hero.moveRange, parent);
 		for (var i = 0; i < neighbors.length; i++) {
 			var index = help.getIndex(neighbors[i]);
 			var node = this._checkerBoard.children().eq(index);
@@ -61,11 +65,11 @@ Chess.prototype = {
 		var _this = this;
 		$('#wrap').on('drop.'+_this._chessName, function(e){
 			e.preventDefault();
-			_this.showBackgroundColor($('#'+data), 3);
+			_this.showMoveRoundColor($('#'+data), 3);
 			var data=e.originalEvent.dataTransfer.getData(_this._chessName);
 			/*if(data == _this._chessName && this.children.length == 0){
 				$(e.target).append(document.getElementById(data));
-				_this.showBackgroundColor($('#'+data), 2);
+				_this.showMoveRoundColor($('#'+data), 2);
 			}*/
 		});
 	},
@@ -74,10 +78,10 @@ Chess.prototype = {
 		node.on('drop.'+_this._chessName, function(e){
 			e.preventDefault();
 			var data=e.originalEvent.dataTransfer.getData('chessName');
-			_this.showBackgroundColor($('#'+data), 3);
+			_this.showMoveRoundColor($('#'+data), 3);
 			if(data == _this._chessName && this.children.length == 0){
 				$(e.target).append(document.getElementById(data));
-				_this.showBackgroundColor($('#'+data), 2);
+				_this.showMoveRoundColor($('#'+data), 2);
 			}
 		});
 	},
@@ -86,23 +90,46 @@ Chess.prototype = {
 		this._chess.on('dragstart',function(e){
 			popHeroInfo(false);
 			e.originalEvent.dataTransfer.setData('chessName',e.target.id);
-			_this.showBackgroundColor($(e.target), 1);
+			_this.showMoveRoundColor($(e.target), 1);
 		})
 	},
-	showBackgroundColor:function(dom,type){
+	showDamageRoundColor:function(type){
+		var _this = this;
+		if(type == 1){
+			var damageRangeNodes = this.getDamageRangeNodes();
+			for (var i = 0; i < damageRangeNodes.length; i++) {
+				var index = help.getIndex(damageRangeNodes[i]);
+				var node = this._moveColorBoard.children().eq(index);
+				this._damageColorNodes.push(node);
+				node.css({
+					'background-color':'red'
+				});
+			}
+		}
+		else if(type == 2){
+			for (var i = 0; i < this._damageColorNodes.length; i++) {
+				this._damageColorNodes[i].css({
+					'background-color':''
+				})
+			}
+
+		}
+	},
+	showMoveRoundColor:function(dom,type){
 		var _this = this;
 		var parent = dom.parent();
-		var neighbors = help.getRound(_this._moveRange, parent);
+		var neighbors = help.getRound(_this._hero.moveRange, parent);
 		if(type == 1){
+			this._moveColorNodes = [];
 			for (var i = 0; i < neighbors.length; i++) {
 				var index = help.getIndex(neighbors[i]);
 				var node = this._moveColorBoard.children().eq(index);
-				this._colorNodes.push(node);
+				this._moveColorNodes.push(node);
 				node.css({
 					'background-color':'green'
 				});
 			}
-			//console.log(this._colorNodes);
+			//console.log(this._moveColorNodes);
 		}
 		else if(type == 2){
 			this._grid.off('drop.'+this._chessName);
@@ -111,12 +138,12 @@ Chess.prototype = {
 				var node = this._checkerBoard.children().eq(index);
 				this.bindGridDrop(node);
 			}
-			this._colorNodes = [];
+			this._moveColorNodes = [];
 		}
 		else{
-			if(!this._colorNodes.length == 0){
-				for (var i = 0; i < this._colorNodes.length; i++) {
-						this._colorNodes[i].css({
+			if(!this._moveColorNodes.length == 0){
+				for (var i = 0; i < this._moveColorNodes.length; i++) {
+						this._moveColorNodes[i].css({
 							'background-color':''
 						})
 				}
@@ -128,6 +155,7 @@ Chess.prototype = {
 		var _this = this;
 		this._chess.on('click.controllboard', function(e){
 			if(attacker == undefined){
+				_this.showDamageRoundColor(1);
 				controllboard('attack', 'attacker', _this);
 				popHeroInfo(false);
 			}
@@ -149,6 +177,12 @@ Chess.prototype = {
 			popHeroInfo(false);
 		})
 	},
+	/*----人物位置模块----*/
+	getLocation:function(){
+		var parent = this._chess.parent();
+		var location = help.getCoordinate(parent);
+		return location;
+	},
 	/*----人物属性模块----*/
 	getBlood:function(){
 		return this._hero.blood;
@@ -165,8 +199,13 @@ Chess.prototype = {
 	getDamage:function(){
 		return this._hero.damage;
 	},
-	getDamageRange:function(){
-		return this._hero.damageRange;
+	getMoveRangeNodes:function(){
+		var _this = this;
+		return this._moveRangeNodes = help.getRound(_this._hero.moveRange, _this._chess.parent());
+	},
+	getDamageRangeNodes:function(){
+		var _this = this;
+		return this._damageRangeNodes = help.getRound(_this._hero.damageRange, _this._chess.parent());
 	},
 	getCamp:function(){
 		return this._hero.camp;
@@ -197,6 +236,7 @@ Chess.prototype = {
 
 
 /*----------------功能函数------------------*/
+/*坐标计算*/
 function GetLocation(gridH, gridW, chessboardH, chessboardW){
 	this.gridH = gridH+2;
 	this.gridW = gridW+2;
@@ -234,9 +274,9 @@ GetLocation.prototype = {
 
 }
 
+/*基本攻击*/
 function BasicCount(){
 }
-
 BasicCount.prototype = {
 	basicAttack:function(attacker, attackTarget){
 		var damage = this.countbasicDamage(attacker.getDamage(), attackTarget.getArmor());
@@ -257,8 +297,18 @@ BasicCount.prototype = {
 			return 0;
 		}
 	},
+	attackRangeCount:function(attacker, attackTarget){
+		var a = attacker.getDamageRangeNodes(),
+			bl = attackTarget.getLocation().toString();
+		for (var i = 0; i < a.length; i++) {
+			if(a[i].toString() == bl){
+				return true;
+			}
+		}
+	}
 }
 
+/*属性弹窗*/
 function popHeroInfo(creat, obj, e){
 	if(creat){
 		if($(".pop").length > 0){
@@ -300,6 +350,7 @@ function controllboard(action, type, hero){
 					attackTips.text('请指定攻击目标');
 				})
 				finish.on('click', function(){
+					attacker.showDamageRoundColor(2);
 					attackTarget = undefined;
 					attacker = undefined;
 					$('#controlboard').remove();
@@ -308,8 +359,14 @@ function controllboard(action, type, hero){
 			case 'attackTarget':
 				if(attacker.getCamp() != hero.getCamp()){
 					attackTarget = hero;
-					basicCount.basicAttack(attacker, attackTarget);
-					$('.attacktips').text('攻击完成');
+					var range = basicCount.attackRangeCount(attacker, attackTarget);
+					if(range){
+						var attackfinish = basicCount.basicAttack(attacker, attackTarget);
+						$('.attacktips').text('攻击完成');
+					}
+					else{
+						$('.attacktips').text('目标太远，无法攻击');
+					}
 					break;
 				}
 				else{
@@ -334,15 +391,15 @@ var obj1 = {
 	checkerBoard:$("#Checkerboard"),
 	moveColorBoard:$("#Movecolorboard"),
 	grid:$(".grid"),
-	moveRange:1,
 	hero:{
 		camp:1,
 		blood:100,
 		magic:50,
 		armor:5,
 		resistance:5,
+		moveRange:1,
 		damage:10,
-		damageRange:2,
+		damageRange:1,
 	}
 }
 
@@ -353,15 +410,15 @@ var obj2 = {
 	checkerBoard:$("#Checkerboard"),
 	moveColorBoard:$("#Movecolorboard"),
 	grid:$(".grid"),
-	moveRange:1,
 	hero:{
 		camp:1,
 		blood:100,
 		magic:50,
 		armor:5,
 		resistance:5,
+		moveRange:1,
 		damage:10,
-		damageRange:2,
+		damageRange:1,
 	}
 }
 
@@ -373,13 +430,13 @@ var obj3 = {
 	checkerBoard:$("#Checkerboard"),
 	moveColorBoard:$("#Movecolorboard"),
 	grid:$(".grid"),
-	moveRange:2,
 	hero:{
 		camp:1,
 		blood:100,
 		magic:50,
 		armor:5,
 		resistance:5,
+		moveRange:2,
 		damage:10,
 		damageRange:2,
 	}
@@ -393,15 +450,15 @@ var obj4 = {
 	checkerBoard:$("#Checkerboard"),
 	moveColorBoard:$("#Movecolorboard"),
 	grid:$(".grid"),
-	moveRange:2,
 	hero:{
 		camp:2,
 		blood:100,
 		magic:50,
 		armor:5,
 		resistance:5,
+		moveRange:2,
 		damage:10,
-		damageRange:2,
+		damageRange:1,
 	}
 }
 
@@ -413,13 +470,13 @@ var obj5 = {
 	checkerBoard:$("#Checkerboard"),
 	moveColorBoard:$("#Movecolorboard"),
 	grid:$(".grid"),
-	moveRange:1,
 	hero:{
 		camp:2,
 		blood:100,
 		magic:50,
 		armor:5,
 		resistance:5,
+		moveRange:1,
 		damage:10,
 		damageRange:2,
 	}
@@ -433,15 +490,15 @@ var obj6 = {
 	checkerBoard:$("#Checkerboard"),
 	moveColorBoard:$("#Movecolorboard"),
 	grid:$(".grid"),
-	moveRange:1,
 	hero:{
 		camp:2,
 		blood:100,
 		magic:50,
 		armor:5,
 		resistance:5,
+		moveRange:1,
 		damage:10,
-		damageRange:2,
+		damageRange:1,
 	}
 }
 

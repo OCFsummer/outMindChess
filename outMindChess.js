@@ -1,5 +1,16 @@
 var attacker = undefined;
-var attackTarget= undefined;
+var attackTarget = undefined;
+var currentCamp = 1;
+var camps = {
+	1:{
+		attacknum:1,
+		movenum:1
+	},
+	2:{
+		attacknum:1,
+		movenum:1
+	}
+}
 
 
 function Chess(obj){
@@ -82,16 +93,36 @@ Chess.prototype = {
 			if(data == _this._chessName && this.children.length == 0){
 				$(e.target).append(document.getElementById(data));
 				_this.showMoveRoundColor($('#'+data), 2);
+				camps[_this.getCamp()]['movenum'] = 0;
+				/*触发click*/
+				_this._chess.click();
 			}
 		});
 	},
 	bindDragstart:function(){
 		var _this = this;
 		this._chess.on('dragstart',function(e){
+			//判断是否为该轮阵营的玩家
+			if(_this.getCamp() == currentCamp){
+				if(camps[_this.getCamp()]['movenum'] > 0){
+					if($('#controlboard').length > 0){
+						attacker.showDamageRoundColor(2);
+						attackTarget = undefined;
+						attacker = undefined;
+						$('#controlboard').remove();
+					}
+					e.originalEvent.dataTransfer.setData('chessName',e.target.id);
+					_this.showMoveRoundColor($(e.target), 1);
+				}
+				else{
+					$('.bordertips').text("当前行动力为0");
+				}
+			}
+			else{
+				$('.bordertips').text('该轮是camp为'+currentCamp+'的玩家');
+			}
 			popHeroInfo(false);
-			e.originalEvent.dataTransfer.setData('chessName',e.target.id);
-			_this.showMoveRoundColor($(e.target), 1);
-		})
+		});
 	},
 	showDamageRoundColor:function(type){
 		var _this = this;
@@ -129,7 +160,6 @@ Chess.prototype = {
 					'background-color':'green'
 				});
 			}
-			//console.log(this._moveColorNodes);
 		}
 		else if(type == 2){
 			this._grid.off('drop.'+this._chessName);
@@ -143,9 +173,9 @@ Chess.prototype = {
 		else{
 			if(!this._moveColorNodes.length == 0){
 				for (var i = 0; i < this._moveColorNodes.length; i++) {
-						this._moveColorNodes[i].css({
-							'background-color':''
-						})
+					this._moveColorNodes[i].css({
+						'background-color':''
+					})
 				}
 			}
 		}
@@ -154,14 +184,34 @@ Chess.prototype = {
 	iconClick:function(){
 		var _this = this;
 		this._chess.on('click.controllboard', function(e){
+			//判断是否为攻击发起人
 			if(attacker == undefined){
-				_this.showDamageRoundColor(1);
-				controllboard('attack', 'attacker', _this);
-				popHeroInfo(false);
+				if(_this.getCamp() == currentCamp){
+					_this.showDamageRoundColor(1);
+					controllboard('attack', 'attacker', _this);
+					popHeroInfo(false);
+				}
+				else{
+					$('.bordertips').text('该轮是camp为'+currentCamp+'的玩家');
+				}
 			}
 			else{
-				controllboard('attack', 'attackTarget', _this);
-				popHeroInfo(true, _this._hero, e);
+				//判断切换攻击人还是对目标进行攻击
+				if(attacker.getCamp() == _this.getCamp()){
+					if(_this.getCamp() == currentCamp){
+						attacker.showDamageRoundColor(2);
+						_this.showDamageRoundColor(1);
+						controllboard('attack', 'attacker', _this);
+						popHeroInfo(false);
+					}
+					else{
+						$('.bordertips').text('该轮是camp为'+currentCamp+'的玩家');
+					}
+				}
+				else{
+					controllboard('attack', 'attackTarget', _this);
+					popHeroInfo(true, _this._hero, e);
+				}
 			}
 		})
 	},
@@ -210,6 +260,9 @@ Chess.prototype = {
 	getCamp:function(){
 		return this._hero.camp;
 	},
+	getSkills:function(){
+		return this._hero.skills;
+	},
 	setBlood:function(arg){
 		return this._hero.blood = arg;
 	},
@@ -233,26 +286,59 @@ Chess.prototype = {
 
 	}
 }
+/*----------------技能函数------------------*/
+function SkillPool(){
 
+}
+SkillPool.prototype = {
 
+}
 /*----------------功能函数------------------*/
-/*坐标计算*/
-function GetLocation(gridH, gridW, chessboardH, chessboardW){
-	this.gridH = gridH+2;
-	this.gridW = gridW+2;
-	this.chessboardH = chessboardH;
-	this.chessboardW = chessboardW;
-	this.h = chessboardH/this.gridH;
-	this.w = chessboardW/this.gridW;
-	this.line = this.h;
-	console.log(this.h);
+/*border创建，坐标计算等通用函数*/
+function GetLocation(gridlength,line){
+	this.gridlength = gridlength+2;
+	this.chessboardLength = this.gridlength*line;
+	this.line = line;
+	this.creatBorder();
 }
 
 GetLocation.prototype = {
+	creatBorder:function(){
+		var wrap = $('<div id="wrap">'+
+				'<div id="Checkerboard"></div>'+
+				'<div id="Movecolorboard"></div>'+
+			'</div>'),
+			checkerboard = wrap.find('#Checkerboard');
+			movecolorboard = wrap.find('#Movecolorboard');
+
+		var num = this.line*this.line;
+		for (var i = 0; i < num; i++) {
+			var grid = $('<div class="grid"></div>'),
+				colorgrid = $('<div class="colorgrid"></div>');
+			checkerboard.append(grid);
+			movecolorboard.append(colorgrid);
+		}
+		checkerboard.css({
+		    'width': this.chessboardLength+'px',
+		    'height': this.chessboardLength+'px',
+		    'top':'150px'
+		});
+		movecolorboard.css({
+		    'width': this.chessboardLength+'px',
+		    'height': this.chessboardLength+'px',
+		    'top':'150px'
+		})
+		wrap.css({
+			'width': this.chessboardLength+700+'px',
+		    'height': this.chessboardLength+300+'px'
+		})
+		wrap.append('<div class="bordertips"></div>');
+		$('body').append(wrap);
+	},
 	getCoordinate:function($dom){
 		var location  = $dom.index();
-		var h = parseInt(location/this.h);
-		var w = location%this.w;
+		var h = parseInt(location/this.line);
+		var w = location%this.line;
 		return coordinate = [w, h];
 	},
 	getIndex:function(coordinate){
@@ -351,37 +437,43 @@ function controllboard(action, type, hero){
 				})
 				finish.on('click', function(){
 					attacker.showDamageRoundColor(2);
+					camps[attacker.getCamp()]['attacknum'] = 1;
+					camps[attacker.getCamp()]['movenum'] = 1;
 					attackTarget = undefined;
 					attacker = undefined;
+					currentCamp == 1?currentCamp = 2:currentCamp = 1;
+					$('.bordertips').text("");
 					$('#controlboard').remove();
 				})
 				break;
 			case 'attackTarget':
-				if(attacker.getCamp() != hero.getCamp()){
+				if(camps[attacker.getCamp()]['attacknum'] > 0){
 					attackTarget = hero;
 					var range = basicCount.attackRangeCount(attacker, attackTarget);
 					if(range){
 						var attackfinish = basicCount.basicAttack(attacker, attackTarget);
+						camps[attacker.getCamp()]['attacknum'] = 0;
 						$('.attacktips').text('攻击完成');
 					}
 					else{
 						$('.attacktips').text('目标太远，无法攻击');
 					}
-					break;
 				}
 				else{
-					$('.attacktips').text('阵营错误，傻屌');
+					$('.bordertips').text("攻击次数为0");
 				}
+				break;
 
 		}
 	}
 	if(action == 'attack'){
+		$('.bordertips').text("");
 		AttackEvent(type,hero);
 	}
 }
 
 
-var help = new GetLocation(40, 40, 504, 504);
+var help = new GetLocation(40, 15);
 var basicCount = new BasicCount();
 
 var obj1 = {
@@ -416,9 +508,9 @@ var obj2 = {
 		magic:50,
 		armor:5,
 		resistance:5,
-		moveRange:1,
+		moveRange:3,
 		damage:10,
-		damageRange:1,
+		damageRange:3,
 	}
 }
 
@@ -486,7 +578,7 @@ var obj6 = {
 	chessName:'食人魔魔法师',
 	chessImg:'食人魔魔法师',
 	camp:2,
-	startLocation:[11,11],
+	startLocation:[9,0],
 	checkerBoard:$("#Checkerboard"),
 	moveColorBoard:$("#Movecolorboard"),
 	grid:$(".grid"),

@@ -6,11 +6,7 @@
 }
 #Checkerboard{
     position: absolute;
-    width: 504px;
-    height: 504px;
-    top: 50%;
     left: 50%;
-    margin-top: -252px;
     margin-left: -252px;
     padding: 1px;
     z-index: 10;
@@ -31,11 +27,7 @@
 #Movecolorboard{
 	background-color: white;
 	position: absolute;
-    width: 504px;
-    height: 504px;
-    top: 50%;
     left: 50%;
-    margin-top: -252px;
     margin-left: -252px;
     padding: 1px;
     z-index: 5;

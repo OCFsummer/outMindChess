@@ -6,7 +6,7 @@
 }
 #Checkerboard{
     position: absolute;
-    left: 50%;
+    left: 30%;
     margin-left: -252px;
     padding: 1px;
     z-index: 10;
@@ -27,7 +27,7 @@
 #Movecolorboard{
 	background-color: white;
 	position: absolute;
-    left: 50%;
+    left: 30%;
     margin-left: -252px;
     padding: 1px;
     z-index: 5;
@@ -36,12 +36,12 @@
 	width: 40px;
     cursor: pointer;
 }
-#controlboard{
+#controllboard{
     width: 250px;
     height: 500px;
     position: absolute;
     background-color: #ccc;
-    right: 50px;
+    right: 250px;
     top: 19%;
 }
 

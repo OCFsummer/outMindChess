@@ -1,3 +1,8 @@
+var herosCamp = {
+	1:[],
+	2:[]
+}
+
 function Chess(obj){
 	this._chessName = obj.chessName;
 	this._chessImg = obj.chessImg;
@@ -18,6 +23,7 @@ Chess.prototype = {
 	init:function(){
 		this.moveInit();
 		this.heroInit();
+		this.checkCamp();
 	},
 	creatChess:function(){
 		var _this = this;
@@ -29,10 +35,19 @@ Chess.prototype = {
 		this.putChess(_this._startLocation);
 		this.bindChessEvent();
 	},
+	checkCamp:function(){
+		var _this = this;
+		if(this._hero.camp == 1){
+			herosCamp[1].push(_this);
+		}
+		else{
+			herosCamp[2].push(_this);
+		}
+	},
 	heroInit:function(){
 		var _this = this;
 		this.getMoveRangeNodes();
-		this.initSkills();
+		this.getSkills();
 	},
 	/*----基本移动逻辑模块----*/
 	putChess:function(Coordinate){
@@ -62,10 +77,6 @@ Chess.prototype = {
 			e.preventDefault();
 			_this.showMoveRoundColor($('#'+data), 3);
 			var data=e.originalEvent.dataTransfer.getData(_this._chessName);
-			/*if(data == _this._chessName && this.children.length == 0){
-				$(e.target).append(document.getElementById(data));
-				_this.showMoveRoundColor($('#'+data), 2);
-			}*/
 		});
 	},
 	bindGridDrop:function(node){
@@ -85,29 +96,6 @@ Chess.prototype = {
 		});
 	},
 	bindDragstart:function(){
-/*		var _this = this;
-		this._chess.on('dragstart',function(e){
-			//判断是否为该轮阵营的玩家
-			if(_this.getCamp() == currentCamp){
-				if(camps[_this.getCamp()]['movenum'] > 0){
-					if($('#controllboard').length > 0){
-						attacker.showDamageRoundColor(2);
-						attackTarget = undefined;
-						attacker = undefined;
-						$('#controllboard').remove();
-					}
-					e.originalEvent.dataTransfer.setData('chessName',e.target.id);
-					_this.showMoveRoundColor($(e.target), 1);
-				}
-				else{
-					$('.bordertips').text("当前行动力为0");
-				}
-			}
-			else{
-				$('.bordertips').text('该轮是camp为'+currentCamp+'的玩家');
-			}
-			popHeroInfo(false);
-		});*/
 		var _this = this;
 		this._chess.on('dragstart',function(e){
 			popHeroInfo();
@@ -120,9 +108,11 @@ Chess.prototype = {
 					if(controllboard.getActionPoint(attacker.getCamp()).movenum > 0){
 						attacker.showMoveRoundColor($(e.target), 1);
 						controllboard.writeController(_this._chessName);
+						controllboard.initSkillsBoard(_this);
 						e.originalEvent.dataTransfer.setData('chessName',e.target.id);
 					}
 					else{
+						controllboard.initSkillsBoard();
 						controllboard.writeAttacktips('移动次数为0，无法移动');
 					}
 					break;
@@ -131,9 +121,11 @@ Chess.prototype = {
 					if(controllboard.getActionPoint(attacker.getCamp()).movenum > 0){
 						attacker.showMoveRoundColor($(e.target), 1);
 						controllboard.writeController(_this._chessName);
+						controllboard.initSkillsBoard(_this);
 						e.originalEvent.dataTransfer.setData('chessName',e.target.id);
 					}
 					else{
+						controllboard.initSkillsBoard();
 						controllboard.writeAttacktips('移动次数为0，无法移动');
 					}
 					break;
@@ -209,9 +201,11 @@ Chess.prototype = {
 			switch(attackInfo.type){
 				case 'attacker':
 					controllboard.writeController(_this._chessName);
+					controllboard.initSkillsBoard(_this);
 					break;
 				case 'changeAttacker':
 					controllboard.writeController(_this._chessName);
+					controllboard.initSkillsBoard(_this);
 					break;
 				case 'attackTarget':
 					if(attackInfo.info == 'normalAttack'){
@@ -244,7 +238,7 @@ Chess.prototype = {
 		return location;
 	},
 	/*----技能相关模块----*/
-	initSkills:function(){
+	getSkills:function(){
 		return this._hero.skills;
 	},
 	/*----人物属性模块----*/
@@ -277,9 +271,6 @@ Chess.prototype = {
 	getCamp:function(){
 		return this._hero.camp;
 	},
-	getSkills:function(){
-		return this._hero.skills;
-	},
 	setBlood:function(arg){
 		return this._hero.blood = arg;
 	},
@@ -305,14 +296,14 @@ function SkillPool(){
 
 }
 SkillPool.prototype = {
-	/*-技能辅助函数-*/
-	blinblinDom:function(moveRanges){
-		for (var i = 0; i < moveRanges.length; i++) {
+	/*-技能CSS辅助函数-*/
+	blinblinDom:function(attacker, skillRanges){
+		for (var i = 0; i < skillRanges.length; i++) {
 			bl = attacker.getLocation().toString();
-			if(moveRanges[i].toString() == bl){
+			if(skillRanges[i].toString() == bl){
 				continue;
 			}
-			var index = help.getIndex(moveRanges[i]);
+			var index = help.getIndex(skillRanges[i]);
 			var node = checkerBoard.children().eq(index);
 			node.css({
 				'opacity':0,
@@ -332,11 +323,39 @@ SkillPool.prototype = {
 			})(node)
 		}
 	},
+	/*-判断攻击距离-*/
+	checkRange:function(attacker, skillRanges, attacked){
+		var bCamp =	attacker.getCamp() == 1?2:1;
+			b = herosCamp[bCamp];
+		for (var i = 0; i < skillRanges.length; i++) {
+			for (var j = 0; j < b.length; j++) {
+				if(b[j].getLocation().toString() == skillRanges[i].toString()){
+					attacked.push(b[j]);
+				}
+			}
+		}
+	},
+	/*-魔法抗性伤害-*/
+	resistanceDamageCount:function(attackTarget,damage){
+		var damage = basicCount.countMagicDamage(damage, attackTarget.getResistance());
+		var blood = attackTarget.setBlood(attackTarget.getBlood() - damage);
+		if(blood > 0 ){
+			return blood;
+		}
+		else{
+			return 0;
+		}
+	},
 	/*-技能函数-*/
 	starStorm:function(attacker){
-		var dom = attacker.getDom();
-		var moveRanges = help.getRound(1, dom.parent());
-		this.blinblinDom(moveRanges);
+		var dom = attacker.getDom(),
+			skillRanges = help.getRound(1, dom.parent()),
+			attacked = [];
+		skillHelp.blinblinDom(attacker, skillRanges);
+		skillHelp.checkRange(attacker, skillRanges, attacked);
+		for (var i = 0; i < attacked.length; i++) {
+			skillHelp.resistanceDamageCount(attacked[i], 20);
+		}
 	}
 }
 /*----------------功能函数------------------*/
@@ -437,6 +456,15 @@ BasicCount.prototype = {
 			return 0;
 		}
 	},
+	countMagicDamage:function(damage, resistance){
+		damage -= resistance;
+		if(damage > 0 ){
+			return damage;
+		}
+		else{
+			return 0;
+		}
+	},
 	attackRangeCount:function(attacker, attackTarget){
 		var a = attacker.getDamageRangeNodes(),
 			bl = attackTarget.getLocation().toString();
@@ -515,10 +543,12 @@ Controllboard.prototype = {
 		var controller = $("<div class='controllerTip'>选择英雄：无</div>")
 		var attackButton = $("<div class='controllboard_attackbutton controllboard_button'>攻击</div>");
 		var attackTips = $("<div class='attacktips'></div>");
+		var skills = $("<div class='skills'></div>");
 		var finish = $("<div class='finish controllboard_button'>完成行动</div>");
 		board.append(controller);
 		board.append(attackButton);
 		board.append(attackTips);
+		board.append(skills);
 		board.append(finish);
 		$('#wrap').append(board);
 		this.eventCreat();
@@ -569,7 +599,6 @@ Controllboard.prototype = {
 				_this.writeAttacktips('请选择英雄');
 			}
 		})
-
 	},
 	/*icon点击事件提供接口判断英雄角色*/
 	judgeHero:function(hero){
@@ -625,6 +654,28 @@ Controllboard.prototype = {
 						break;
 				}
 			}
+		}
+	},
+	/*---技能模块---*/
+	initSkillsBoard:function(hero){
+		if(!hero){
+			$('.skill').remove();
+			return;
+		}
+		if($('.skill').length > 0){
+			$('.skill').remove();
+		}
+		var skillDom = $('.skills');
+		var skills = hero.getSkills();
+		for(var key in skills){
+			var img = $('<img src="./imgs/skills/'+skills[key].img+'.png" class="skill" alt="" />'),
+				callback = skills[key].callback;
+			(function(img, obj, hero){
+				img.on('click', function(){
+					callback(hero, skillHelp);
+				})
+			})(img, callback, hero)
+			skillDom.append(img);
 		}
 	},
 	judgeCurrentCamp:function(hero){
@@ -736,7 +787,10 @@ var obj3 = {
 		damage:10,
 		damageRange:4,
 		skills:{
-			starStorm:skillHelp.starStorm
+			starStorm:{
+				img:'群星风暴',
+				callback:skillHelp.starStorm
+			}
 		}
 	}
 }

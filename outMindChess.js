@@ -1,8 +1,3 @@
-var herosCamp = {
-	1:[],
-	2:[]
-}
-
 function Chess(obj){
 	this._chessName = obj.chessName;
 	this._chessImg = obj.chessImg;
@@ -38,10 +33,10 @@ Chess.prototype = {
 	checkCamp:function(){
 		var _this = this;
 		if(this._hero.camp == 1){
-			herosCamp[1].push(_this);
+			controllboard.setHerosCamp(1, _this);
 		}
 		else{
-			herosCamp[2].push(_this);
+			controllboard.setHerosCamp(2, _this);
 		}
 	},
 	heroInit:function(){
@@ -326,7 +321,7 @@ SkillPool.prototype = {
 	/*-判断攻击距离-*/
 	checkRange:function(attacker, skillRanges, attacked){
 		var bCamp =	attacker.getCamp() == 1?2:1;
-			b = herosCamp[bCamp];
+			b = controllboard.getHerosCamp()[bCamp];
 		for (var i = 0; i < skillRanges.length; i++) {
 			for (var j = 0; j < b.length; j++) {
 				if(b[j].getLocation().toString() == skillRanges[i].toString()){
@@ -347,17 +342,49 @@ SkillPool.prototype = {
 		}
 	},
 	/*-技能函数-*/
-	starStorm:function(attacker){
-		var dom = attacker.getDom(),
-			skillRanges = help.getRound(1, dom.parent()),
-			attacked = [];
-		skillHelp.blinblinDom(attacker, skillRanges);
-		skillHelp.checkRange(attacker, skillRanges, attacked);
-		for (var i = 0; i < attacked.length; i++) {
-			skillHelp.resistanceDamageCount(attacked[i], 20);
+	starStorm:function(attacker, _this){
+		if(controllboard.judgeAttackNum(attacker)){
+			var dom = attacker.getDom(),
+				skillRanges = help.getRound(1, dom.parent()),
+				attacked = [];
+			_this.blinblinDom(attacker, skillRanges);
+			_this.checkRange(attacker, skillRanges, attacked);
+			for (var i = 0; i < attacked.length; i++) {
+				_this.resistanceDamageCount(attacked[i], 20);
+			}
+			controllboard.setActionPoint(attacker.getCamp(), 'attacknum', 0);
 		}
+	},
+	eluneArrow:function(attacker){
+		//var arrow = new 
 	}
 }
+
+/*----------------技能对象------------------*/
+function skillObj(obj){
+	this._name = obj.name;
+	this._type = obj.type;
+	this._damage = obj.damage;
+	this._details = obj.details;
+}
+
+skillObj.prototype = {
+	init:function(){
+		var _this = this;
+		for (var i = 0; i < this._details.length; i++) {
+			var img = this._details[i]['img'],
+				location = this._details[i]['location'];
+			var index = help.getIndex(location);
+		}
+	},
+	move:function(coordinate){
+		
+	}
+}
+
+
+
+
 /*----------------功能函数------------------*/
 /*border创建，坐标计算等通用函数*/
 function GetLocation(gridlength,line){
@@ -475,12 +502,12 @@ BasicCount.prototype = {
 		}
 	},
 	attack:function(attacker, attackTarget){
-		if(controllboard.getActionPoint(attacker.getCamp()).attacknum > 0){
+		if(controllboard.judgeAttackNum(attacker)){
 			controllboard.setAttackTarget(attackTarget);
 			var range = this.attackRangeCount(attacker, attackTarget);
 			if(range){
 				var attackfinish = this.attackCount(attacker, attackTarget);
-				controllboard.getActionPoint(attacker.getCamp()).attacknum = 0;
+				controllboard.setActionPoint(attacker.getCamp(), 'attacknum', 0);
 				controllboard.writeAttacktips('攻击完成');
 			}
 			else{
@@ -534,6 +561,10 @@ function Controllboard(){
 			movenum:1
 		}
 	};
+	this._herosCamp = {
+		1:[],
+		2:[]
+	};
 	this.init();
 }
 
@@ -557,36 +588,14 @@ Controllboard.prototype = {
 		this.attackButtonClick();
 		this.finishButtonClick();
 	},
+	/*完成行动按钮*/
 	finishButtonClick:function(){
 		var _this = this;
 		$('.finish').on('click', function(){
-			if(_this._attacker){
-				_this._attacker.showDamageRoundColor(_this._attacker, false);
-				_this.getActionPoint(_this._attacker.getCamp()).attacknum = 1;
-				_this.getActionPoint(_this._attacker.getCamp()).movenum = 1;
-				_this._attackTarget = undefined;
-				_this._attacker = undefined;
-				_this._attackType = {
-					info:undefined,
-					callback:undefined
-				};
-				_this._camps = {
-					1:{
-						attacknum:1,
-						movenum:1
-					},
-					2:{
-						attacknum:1,
-						movenum:1
-					}
-				};
-			}
-			_this._currentCamp == 1?_this._currentCamp = 2:_this._currentCamp = 1;
-			_this.writeController();
-			_this.writeAttacktips();
-			help.writeBordertips();
+			_this.endRound();
 		})
 	},
+	/*攻击按钮*/
 	attackButtonClick:function(){
 		var _this = this;
 		$('.controllboard_attackbutton').on('click', function(){
@@ -599,6 +608,36 @@ Controllboard.prototype = {
 				_this.writeAttacktips('请选择英雄');
 			}
 		})
+	},
+	/*结束本回合*/
+	endRound:function(){
+		var _this = this;
+		if(_this._attacker){
+			_this._attacker.showDamageRoundColor(_this._attacker, false);
+			_this.getActionPoint(_this._attacker.getCamp()).attacknum = 1;
+			_this.getActionPoint(_this._attacker.getCamp()).movenum = 1;
+			_this._attackTarget = undefined;
+			_this._attacker = undefined;
+			_this._attackType = {
+				info:undefined,
+				callback:undefined
+			};
+			_this._camps = {
+				1:{
+					attacknum:1,
+					movenum:1
+				},
+				2:{
+					attacknum:1,
+					movenum:1
+				}
+			};
+		}
+		_this.initSkillsBoard();
+		_this._currentCamp == 1?_this._currentCamp = 2:_this._currentCamp = 1;
+		_this.writeController();
+		_this.writeAttacktips();
+		help.writeBordertips();
 	},
 	/*icon点击事件提供接口判断英雄角色*/
 	judgeHero:function(hero){
@@ -683,6 +722,24 @@ Controllboard.prototype = {
 			return true;
 		}
 	},
+	judgeAttackNum:function(hero){
+		var camp = hero.getCamp();
+		var num = this.getActionPoint(camp);
+		if(num.attacknum <= 0){
+			controllboard.writeAttacktips('攻击次数为0，无法攻击');
+			return false;
+		}
+		return true;
+	},
+	judgeMoveNum:function(hero){
+		var camp = hero.getCamp();
+		var num = this.getActionPoint(camp);
+		if(num.movenum <= 0){
+			controllboard.writeAttacktips('移动次数为0，无法攻击');
+			return false;
+		}
+		return true;
+	},
 	writeAttacktips:function(info){
 		var dom = $('.attacktips');
 		if(info == undefined){
@@ -714,6 +771,9 @@ Controllboard.prototype = {
 	getActionPoint:function(camp){
 		return this._camps[camp];
 	},
+	getHerosCamp:function(){
+		return this._herosCamp;
+	},
 	setAttacker:function(hero){
 		return this._attacker = hero;
 	},
@@ -725,6 +785,9 @@ Controllboard.prototype = {
 	},
 	setActionPoint:function(camp, type, num){
 		return this._camps[camp][type] = num;
+	},
+	setHerosCamp:function(camp, hero){
+		return this._herosCamp[camp].push(hero);
 	},
 }
 

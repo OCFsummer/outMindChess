@@ -355,30 +355,167 @@ SkillPool.prototype = {
 			controllboard.setActionPoint(attacker.getCamp(), 'attacknum', 0);
 		}
 	},
-	eluneArrow:function(attacker){
-		//var arrow = new 
+	eluneArrowReady:function(attacker){
+		var round = help.getRoundNoOwn(1,attacker.getDom().parent());
+		help.tintingAndCallback(round, skillHelp.eluneArrowReadyGo, attacker);
+	},
+	eluneArrowReadyGo:function(round, event, attacker){
+		var routes,
+			obj = {
+				name:'xjbs',
+				type:'skill',
+				damage:10,
+				liveTime:3,
+				autoMove:1,
+				bodys:[{
+					img:'月神之箭',
+					location:[]
+				},{
+					img:'月神之箭',
+					location:[]
+				}]
+			}
+		help.unbindClick(round,'skill');
+		help.removeTinting(round);
+		var a = help.getCoordinate(attacker.getDom().parent()),
+			b = help.getCoordinate($(event.target));
+		speed = help.vectorSpeed(a, b);
+		obj.speed = speed;
+		obj.bodys[0]['location'] = b;
+		obj.bodys[1]['location'] = help.speedCoordinate(speed, b);
+		var arrow = new ModelObj(obj);
+		timeLine.addEvent(arrow);
+	}
+}
+/*----------------TimeLine------------------*/
+function TimeLine(){
+	this._time = 0;
+	this._events = [];
+	
+}
+
+TimeLine.prototype = {
+	polling:function(){
+		var _this = this;
+		for (var i = 0; i < this._events.length; i++) {
+			var event = this._events[i];
+			if(event.getStartTime() == undefined){
+				event.setStartTime(this.getTime());
+			}
+			if(event.getStartTime() + event.getLiveTime() - 1 > this.getTime()){
+				var speed = event.getSpeed();
+				event.putModels(speed);
+			}
+			else{
+				event.delModels();
+			}
+		}
+		this.addTime();
+	},
+	addEvent:function(event){
+		this._events.push(event);
+	},
+	addTime:function(){
+		this._time += 1;
+	},
+	getTime:function(){
+		return this._time;
 	}
 }
 
+
 /*----------------技能对象------------------*/
-function skillObj(obj){
+/*{
+	name:'xjbs',
+	type:'skill',
+	damage:10,
+	bodys:[{
+		img:'月神之箭',
+		location:[5, 5]
+	},{
+		img:'月神之箭',
+		location:[5, 6]
+	}]
+}*/
+function ModelObj(obj){
 	this._name = obj.name;
 	this._type = obj.type;
 	this._damage = obj.damage;
-	this._details = obj.details;
+	this._bodys = obj.bodys;
+	this._models = [];
+	this._route = obj.route?obj.route:undefined; 
+	this._speed = obj.speed?obj.speed:undefined; 
+	this._liveTime = obj.liveTime;
+	this._startTime;
+	this.init();
 }
-
-skillObj.prototype = {
+ModelObj.prototype = {
 	init:function(){
 		var _this = this;
-		for (var i = 0; i < this._details.length; i++) {
-			var img = this._details[i]['img'],
-				location = this._details[i]['location'];
+		for (var i = 0; i < this._bodys.length; i++) {
+			var img = this._bodys[i]['img'],
+				location = this._bodys[i]['location'];
 			var index = help.getIndex(location);
+			var model = this.creatModel(img, _this._name);
+			this.putModel(index, model);
 		}
 	},
-	move:function(coordinate){
-		
+	creatModel:function(img, name){
+		var model = $("<img src='./imgs/skills/"+img+".png' class='heroicon "+name+"' draggable='true'>");
+		this._models.push(model);
+		return model;
+	},
+	putModel:function(index, model){
+		var _this = this;
+		if($(".grid").eq(index).children().length > 0){
+			model.hide();
+		}
+		else{
+			model.show();
+		}
+		$(".grid").eq(index).append(model);
+	},
+	putModels:function(moveCoordinate){
+		this.delModels();
+		var _this = this;
+		for (var i = 0; i < this._bodys.length; i++) {
+			var img = this._bodys[i]['img'],
+				location = this._bodys[i]['location'];
+				location[0] += moveCoordinate[0];
+				location[1] += moveCoordinate[1];
+			if(this.isModelsOut(location)){
+				continue;
+			}
+			var index = help.getIndex(location);
+			var model = this.creatModel(img, _this._name);
+			this.putModel(index, model);
+		}
+	},
+	delModels:function(model){
+		var _this = this;
+		$('.'+_this._name).remove();
+		this._models = [];
+	},
+	isModelsOut:function(location){
+		if(location[0] < help.getLine()){
+			return false;
+		}
+		return true;
+	},
+	getName:function(){
+		return this._name;
+	},
+	getLiveTime:function(){
+		return this._liveTime;
+	},
+	getStartTime:function(){
+		return this._startTime;
+	},
+	getSpeed:function(){
+		return this._speed;
+	},
+	setStartTime:function(time){
+		return this._startTime = time;
 	}
 }
 
@@ -436,12 +573,32 @@ GetLocation.prototype = {
 	getIndex:function(coordinate){
 		return coordinate[1]*this.line+coordinate[0];
 	},
+	/*
+	@param movenum：显示距离
+	@param dom：棋子所在grid DOM对象
+	*/
 	getRound:function(movenum,dom){
 		var coordinate = this.getCoordinate(dom);
 		var arr = [];
 		for (var i = 0-movenum; i <= 0+movenum; i++) {
 			for (var j = 0-movenum; j <= 0+movenum; j++) {
 				if(coordinate[0]+i >= 0 && coordinate[1]+j >= 0 && coordinate[0]+i < this.line && coordinate[1]+j < this.line){
+					var temparr = [coordinate[0]+i, coordinate[1]+j];
+					arr.push(temparr);
+				}
+			}
+		}
+		return arr;
+	},
+	getRoundNoOwn:function(movenum,dom){
+		var coordinate = this.getCoordinate(dom);
+		var arr = [];
+		for (var i = 0-movenum; i <= 0+movenum; i++) {
+			for (var j = 0-movenum; j <= 0+movenum; j++) {
+				if(coordinate[0]+i >= 0 && coordinate[1]+j >= 0 && coordinate[0]+i < this.line && coordinate[1]+j < this.line){
+					if(i==0 && j==0){
+						continue;
+					}
 					var temparr = [coordinate[0]+i, coordinate[1]+j];
 					arr.push(temparr);
 				}
@@ -456,6 +613,97 @@ GetLocation.prototype = {
 			return;
 		}
 		dom.text(info);
+	},
+	getLine:function(){
+		return this.line;
+	},
+	/*
+	@param array 范围
+	@param function 回调
+	@param obj attacker对象
+	*/
+	tintingAndCallback:function(round, callback, attacker){
+		for (var i = 0; i < round.length; i++) {
+			var index = help.getIndex(round[i]);
+			var colorNode = moveColorBoard.children().eq(index);
+			var clickNode = checkerBoard.children().eq(index);
+			colorNode.css({
+				'background-color':'green'
+			});
+			(function(callback, attacker, round, clickNode){
+				clickNode.on('click.skill', function(event){
+					callback(round, event, attacker);
+				})
+			})(callback, attacker, round, clickNode)
+		}
+	},
+	removeTinting:function(round){
+		for (var i = 0; i < round.length; i++) {
+			var index = help.getIndex(round[i]);
+			var node = moveColorBoard.children().eq(index);
+			node.css({
+				'background-color':''
+			});
+		}
+	},
+	unbindClick:function(round, name){
+		for (var i = 0; i < round.length; i++) {
+			var index = help.getIndex(round[i]);
+			var node = moveColorBoard.children().eq(index);
+			node.off('click.'+name);
+		}
+	},
+	/*
+	@param array 初始坐标
+	@param array 第二坐标
+	@param number 移动次数
+	*/
+	vectorRoute:function(a, b, liveTime){
+		var speed = [],
+			nextRoute = [],
+			routes = [b];
+		for (var i = 0; i < a.length; i++) {
+			if(a[i] < b[i]){
+				speed[i] = 1;
+			}
+			else if(a[i] > b[i]){
+				speed[i] = -1;
+			}
+			else{
+				speed[i] = 0
+			}
+		}
+		for (var i = 0; i < liveTime; i++) {
+			if(nextRoute.length == 0){
+				nextRoute[0] = b[0] + speed[0];
+				nextRoute[1] = b[1] + speed[1];
+			}
+			else{
+				nextRoute[0] += speed[0];
+				nextRoute[1] += speed[1];
+			}
+			var copyArr = nextRoute.slice(0);
+			routes.push(copyArr);
+		}
+		return routes;
+	},
+	vectorSpeed:function(a, b){
+		var speed = [];
+		for (var i = 0; i < a.length; i++) {
+			if(a[i] < b[i]){
+				speed[i] = 1;
+			}
+			else if(a[i] > b[i]){
+				speed[i] = -1;
+			}
+			else{
+				speed[i] = 0
+			}
+		}
+		return speed;
+	},
+	speedCoordinate:function(speed,coordinate){
+		return [coordinate[0]+speed[0],coordinate[1]+speed[1]];
 	}
 
 }
@@ -638,6 +886,7 @@ Controllboard.prototype = {
 		_this.writeController();
 		_this.writeAttacktips();
 		help.writeBordertips();
+		timeLine.polling();
 	},
 	/*icon点击事件提供接口判断英雄角色*/
 	judgeHero:function(hero){
@@ -796,6 +1045,7 @@ var skillHelp = new SkillPool();
 var help = new GetLocation(40, 15);
 var controllboard = new Controllboard();
 var basicCount = new BasicCount();
+var timeLine = new TimeLine();
 
 var checkerBoard = $("#Checkerboard");
 var moveColorBoard = $("#Movecolorboard");
@@ -853,6 +1103,10 @@ var obj3 = {
 			starStorm:{
 				img:'群星风暴',
 				callback:skillHelp.starStorm
+			},
+			eluneArrow:{
+				img:'月神之箭',
+				callback:skillHelp.eluneArrowReady
 			}
 		}
 	}
